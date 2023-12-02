@@ -1,0 +1,151 @@
+---
+title: "hw6"
+author: "Junjie Hu"
+date: "2023-12-01"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(purrr)
+```
+
+# Problem 1
+```{r}
+homicide_df =
+  read.csv("homicide-data.csv")|>
+  janitor::clean_names() |>
+  mutate(city_state = paste(city, state, sep = ",")) |>
+  mutate(resolved = ifelse(disposition %in% c("Closed without arrest", "Open/No arrest"), "No", "Yes")) |>
+   filter(city_state != "Tulsa,AL" & 
+         city_state != "Dallas,TX" & 
+         city_state != "Phoenix,AZ" & 
+         city_state != "Kansas City,MO") |>
+  filter(victim_race %in% c("White", "Black")) |>
+  mutate(
+    resolved = as.numeric(disposition == "Closed by arrest"),
+    victim_age = as.numeric(victim_age),
+    victim_race = fct_relevel(victim_race, "White")) |> 
+  select(resolved, victim_age, victim_race, victim_sex, city_state)
+```
+Imported homicide data, created new variable `city_state` and `solved`, and omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO.
+
+
+```{r}
+baltimore_df =  
+  homicide_df |>
+  filter(city_state == "Baltimore,MD")
+
+
+fit_logistic = 
+  baltimore_df |> 
+  glm(resolved ~ victim_age + victim_race + victim_sex, data = _, family = binomial()) 
+
+fit_logistic |> 
+  broom::tidy(conf.int = TRUE) |> 
+  mutate(OR = exp(estimate),
+         conf.low = exp(conf.low),
+         conf.high = exp(conf.high)) |>
+  select(term, log_OR = estimate, OR, conf.low, conf.high, p.value) |> 
+  knitr::kable(digits = 3)
+  
+```
+Fit a logistic regression for the binary “resolved” outcome and victim demographics as predictors.
+
+The odds of solving homicide among male victims is 0.426 times compared to the odds of female victims, adjusting for age and race. We are 95% confident that the true odds ratio falls between 0.324 and 0.558.
+
+```{r}
+model_results = 
+  homicide_df |> 
+  nest(data = -city_state) |> 
+  mutate(
+    models = map(data, \(df) glm(resolved ~ victim_age + victim_sex + victim_race, 
+                             family = binomial(), data = df)),
+    tidy_models = map(models, broom::tidy)) |> 
+  select(-models, -data) |> 
+  unnest(cols = tidy_models) |> 
+  mutate(
+    OR = exp(estimate), 
+    OR_CI_upper = exp(estimate + 1.96 * std.error),
+    OR_CI_lower = exp(estimate - 1.96 * std.error)) |> 
+  filter(term == "victim_sexMale") |> 
+  select(city_state, OR, OR_CI_lower, OR_CI_upper)
+
+model_results |>
+  slice(1:5) |> 
+  knitr::kable(digits = 3)
+```
+
+```{r}
+model_results |> 
+  mutate(city_state = fct_reorder(city_state, OR)) |> 
+  ggplot(aes(x = city_state, y = OR)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = OR_CI_lower, ymax = OR_CI_upper)) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+# Problem 2
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2022-01-01",
+    date_max = "2022-12-31") |>
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) |>
+  select(name, id, everything())
+```
+
+```{r}
+boot_sample = function(df) {
+  sample_frac(df, replace = TRUE)
+}
+
+boot_straps = 
+  tibble(strap_number = 1:5000) |> 
+  mutate(
+    strap_sample = map(strap_number, \(i) boot_sample(df = weather_df))
+  )
+
+boot_straps
+```
+
+```{r}
+bootstrap_results = 
+  boot_straps |> 
+  mutate(
+    models = map(strap_sample, \(df) lm(tmax ~ tmin + prcp, data = df) ),
+    glance = map(models, broom::glance),
+    results = map(models, broom::tidy),
+    log_product = map(models, ~log(abs(coef(.x)['tmin'] * coef(.x)['prcp'])))
+    ) |> 
+    select(-strap_sample, -models) |> 
+    unnest()
+
+```
+
+```{r}
+bootstrap_results |>
+  ggplot(aes(x = r.squared)) +
+  geom_density() +
+  labs(title = "Distribution of r squared Estimates",
+       x = "r squared",
+       y = "Frequency") +
+  theme_minimal()
+
+bootstrap_results |>
+  ggplot(aes(x = log_product)) +
+  geom_density() +
+  labs(title = "Distribution of Log_product Estimates",
+       x = "Log_product",
+       y = "Frequency") +
+  theme_minimal()
+```
+
