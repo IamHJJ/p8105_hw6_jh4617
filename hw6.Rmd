@@ -186,15 +186,30 @@ birthweight_df =
 ```
 
 ```{r}
-separate = function(column_name){
-  new_df = data.frame(bwt = birthweight_df$bwt, x = birthweight_df[[column_name]])
+unique(birthweight_df$pnumgsa)
+unique(birthweight_df$pnumlbw)
+```
+Variables `pnumgsa` and `pnumlbw` are excluded from the final model, because all observation is "0". 
+
+```{r}
+variables = c("babysex","bhead","blength","delwt","fincome","frace","gaweeks","malform","menarche","mheight","momage","mrace","parity","ppbmi","ppwt","smoken","wtgain")
+
+fit_and_summarize <- function(var) {
+  model = lm(as.formula(paste("bwt ~", var)), data = birthweight_df) |>
   
-  names(new_df)[2] = column_name
+  broom::tidy()
 }
 
-list_df = map(names(birthweight_df), separate)
+model_summaries = 
+  map(variables, fit_and_summarize) |>
+  bind_rows() |>
+  filter(p.value <= 0.05 & term != "(Intercept)")
 
-list_models = map2(list_df, ~lm(bwt ~ .[[2]], data = .x))
+model_summaries
+```
+Conducted bivariate analysis to identify the variable that is significantly associated with birthweight. The significant variables are included to the final model.
+
+```{r}
 
 ```
 
