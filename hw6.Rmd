@@ -149,3 +149,13 @@ bootstrap_results |>
   theme_minimal()
 ```
 
+# Problem 3
+
+```{r}
+birthweight_df =
+  read.csv("birthweight.csv")|>
+  janitor::clean_names() |>
+  
+```
+
+
