@@ -2,9 +2,9 @@
 title: "hw6"
 author: "Junjie Hu"
 date: "2023-12-01"
-output: html_document
+output: github_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -210,8 +210,23 @@ model_summaries
 Conducted bivariate analysis to identify the variable that is significantly associated with birthweight. The significant variables are included to the final model.
 
 ```{r}
-birthweight_df |>
-  fit_model = lm(bwt ~ babysex + bhead + blength + delwt + fincome + frace + gaweeks 
-                 + mheight + momage + mrace + ppbmi + ppwt + smoken + wtgain, data = _)
+fit_model = lm(bwt ~ babysex + bhead + blength + delwt + fincome + frace + gaweeks 
+                 + mheight + momage + mrace + ppbmi + ppwt + smoken + wtgain, data = birthweight_df)
 
+```
+fit a multivariate model.
+
+```{r}
+birthweight_df |> 
+  modelr::add_residuals(fit_model) |> 
+  modelr::add_predictions(fit_model) |>
+  ggplot(aes(x = pred, y = resid)) + 
+  geom_point() +
+  labs(title = "Model Residuals against Predicted Birth Weight",
+       x = "Predicted Birth Weight",
+       y = "Residual") +
+  theme_minimal()
+```
+
+There is a few outliers. But, in general, the residual is evenly spread out around zero. Hence, the model should be able to successfully predict the birth weight.
 
