@@ -4,7 +4,7 @@ author: "Junjie Hu"
 date: "2023-12-01"
 output: html_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r}
@@ -155,7 +155,46 @@ bootstrap_results |>
 birthweight_df =
   read.csv("birthweight.csv")|>
   janitor::clean_names() |>
+  mutate(
+    babysex = recode(babysex,
+                     "1" = "male",
+                     "2" = "female"),
+    frace = recode(frace,
+                   "1" = "White",
+                   "2" = "Black",
+                   "3" = "Asian",
+                   "4" = "Puerto Rican",
+                   "8" = NA_character_,
+                   "9" = NA_character_),
+    malform = recode(malform,
+                     "0" = "absent",
+                     "1" = "present"),
+    mrace = recode(mrace,
+                   "1" = "White",
+                   "2" = "Black",
+                   "3" = "Asian",
+                   "4" = "Puerto Rican",
+                   "8" = NA_character_)
+  ) |>
+    mutate(
+    babysex = as.factor(babysex),
+    frace = as.factor(frace),
+    malform = as.factor(malform),
+    mrace = as.factor(mrace)
+  ) 
   
 ```
 
+```{r}
+separate = function(column_name){
+  new_df = data.frame(bwt = birthweight_df$bwt, x = birthweight_df[[column_name]])
+  
+  names(new_df)[2] = column_name
+}
+
+list_df = map(names(birthweight_df), separate)
+
+list_models = map2(list_df, ~lm(bwt ~ .[[2]], data = .x))
+
+```
 
