@@ -4,7 +4,7 @@ author: "Junjie Hu"
 date: "2023-12-01"
 output: github_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r}
@@ -154,6 +154,16 @@ bootstrap_results |>
   theme_minimal()
 ```
 
+```{r}
+quantile(pull(bootstrap_results, r.squared), probs = c(0.025, 0.975))
+```
+Quantile for r.squared
+
+```{r}
+quantile(pull(bootstrap_results, log_product), probs = c(0.025, 0.975))
+```
+Quantile for log_product
+
 # Problem 3
 
 ```{r}
@@ -277,6 +287,7 @@ cv_df |>
        y = "RMSE") +
   theme_minimal()
 ```
+My model have the lowest RMSE, following my model 3. The highest RMSE is model 2.
 
 Linear 1: My model
 Linear 2: Using length at birth and gestational age as predictors (main effects only)
