@@ -10,6 +10,8 @@ editor_options:
 ```{r}
 library(tidyverse)
 library(purrr)
+library(modelr)
+library(mgcv)
 ```
 
 # Problem 1
@@ -229,4 +231,43 @@ birthweight_df |>
 ```
 
 There is a few outliers. But, in general, the residual is evenly spread out around zero. Hence, the model should be able to successfully predict the birth weight.
+
+```{r}
+cv_df =
+  crossv_mc(birthweight_df, 100) |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+
+
+cv_df = 
+  cv_df |> 
+  mutate(
+    
+    linear_1 = map(train, \(df) lm(bwt ~ babysex + bhead + blength + delwt + fincome + frace + gaweeks + mheight + momage + mrace + ppbmi + ppwt + smoken + wtgain, data = df)),
+    
+    linear_2 = map(train, \(df) lm(bwt ~ blength + gaweeks, data = df)),
+    
+    linear_3  = map(train, \(df) lm(bwt ~ bhead + blength + babysex + bhead*blength + blength*babysex + bhead*babysex + bhead*blength*babysex, data = as_tibble(df)))
+    ) |> 
+  mutate(
+    rmse_linear_1 = map2_dbl(linear_1, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_linear_2 = map2_dbl(linear_2, test, \(mod, df) rmse(model = mod, data = df)),
+    rmse_linear_3 = map2_dbl(linear_3, test, \(mod, df) rmse(model = mod, data = df)))
+  
+
+```
+
+```{r}
+cv_df |> 
+  select(starts_with("rmse")) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
 
