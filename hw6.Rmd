@@ -210,6 +210,8 @@ model_summaries
 Conducted bivariate analysis to identify the variable that is significantly associated with birthweight. The significant variables are included to the final model.
 
 ```{r}
+birthweight_df |>
+  fit_model = lm(bwt ~ babysex + bhead + blength + delwt + fincome + frace + gaweeks 
+                 + mheight + momage + mrace + ppbmi + ppwt + smoken + wtgain, data = _)
 
-```
 
