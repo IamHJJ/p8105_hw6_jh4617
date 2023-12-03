@@ -216,7 +216,8 @@ bootstrap_results |>
   theme_minimal()
 ```
 
-![](hw6_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](hw6_files/figure-gfm/unnamed-chunk-9-1.png)<!-- --> The distribution
+of r squared estimates is normally distributed around 0.920.
 
 ``` r
 bootstrap_results |>
@@ -228,7 +229,9 @@ bootstrap_results |>
   theme_minimal()
 ```
 
-![](hw6_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
+![](hw6_files/figure-gfm/unnamed-chunk-10-1.png)<!-- --> The
+distribution of log product estimates is left-skewed. The median is
+around -5.
 
 ``` r
 quantile(pull(bootstrap_results, r.squared), probs = c(0.025, 0.975)) |>
@@ -249,8 +252,8 @@ knitr::kable(digits = 3)
 
 |       |      x |
 |:------|-------:|
-| 2.5%  | -8.577 |
-| 97.5% | -4.590 |
+| 2.5%  | -8.528 |
+| 97.5% | -4.606 |
 
 Quantile for log_product
 
@@ -376,7 +379,7 @@ birthweight_df |>
 
     ## Warning: Removed 14 rows containing missing values (`geom_point()`).
 
-![](hw6_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](hw6_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 There is a few outliers. But, in general, the residual is evenly spread
 out around zero. Hence, the model should be able to successfully predict
@@ -429,7 +432,7 @@ cv_df |>
   theme_minimal()
 ```
 
-![](hw6_files/figure-gfm/unnamed-chunk-18-1.png)<!-- --> My model have
+![](hw6_files/figure-gfm/unnamed-chunk-19-1.png)<!-- --> My model have
 the lowest RMSE, following my model 3. The highest RMSE is model 2.
 
 Linear 1: My model
