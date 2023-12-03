@@ -200,12 +200,9 @@ bootstrap_results =
     results = map(models, broom::tidy),
     log_product = map(models, ~log(abs(coef(.x)['tmin'] * coef(.x)['prcp'])))
     ) |> 
-    select(-strap_sample, -models) |> 
-    unnest()
+    select(-strap_sample, -models, -results) |> 
+    unnest(cols = c(glance, log_product))
 ```
-
-    ## Warning: `cols` is now required when using `unnest()`.
-    ## ℹ Please use `cols = c(glance, results, log_product)`.
 
 Produced estimates of these two quantities
 
@@ -232,6 +229,30 @@ bootstrap_results |>
 ```
 
 ![](hw6_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
+
+``` r
+quantile(pull(bootstrap_results, r.squared), probs = c(0.025, 0.975)) |>
+  knitr::kable(digits = 3)
+```
+
+|       |     x |
+|:------|------:|
+| 2.5%  | 0.889 |
+| 97.5% | 0.940 |
+
+Quantile for r.squared
+
+``` r
+quantile(pull(bootstrap_results, log_product), probs = c(0.025, 0.975)) |>
+knitr::kable(digits = 3)
+```
+
+|       |      x |
+|:------|-------:|
+| 2.5%  | -8.577 |
+| 97.5% | -4.590 |
+
+Quantile for log_product
 
 # Problem 3
 
@@ -268,7 +289,10 @@ birthweight_df =
   ) 
 ```
 
-Converted numeric variables to factor and specified names.
+Converted numeric variables to factor and specified names. Those who
+answered “Others” and “Unknown” for father race is coded as missing and
+excluded from the regression. Those who answered “Others” for mother
+race is coded as missing and excluded from the regression.
 
 ``` r
 unique(birthweight_df$pnumgsa)
@@ -352,7 +376,7 @@ birthweight_df |>
 
     ## Warning: Removed 14 rows containing missing values (`geom_point()`).
 
-![](hw6_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](hw6_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 There is a few outliers. But, in general, the residual is evenly spread
 out around zero. Hence, the model should be able to successfully predict
@@ -405,8 +429,13 @@ cv_df |>
   theme_minimal()
 ```
 
-![](hw6_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](hw6_files/figure-gfm/unnamed-chunk-18-1.png)<!-- --> My model have
+the lowest RMSE, following my model 3. The highest RMSE is model 2.
 
-Linear 1: My model Linear 2: Using length at birth and gestational age
-as predictors (main effects only) Linear 3: Using head circumference,
-length, sex, and all interactions (including the three-way interaction)
+Linear 1: My model
+
+Linear 2: Using length at birth and gestational age as predictors (main
+effects only)
+
+Linear 3: Using head circumference, length, sex, and all interactions
+(including the three-way interaction)
