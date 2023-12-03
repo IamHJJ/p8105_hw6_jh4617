@@ -144,7 +144,10 @@ bootstrap_results |>
        x = "r squared",
        y = "Frequency") +
   theme_minimal()
+```
+The distribution of r squared estimates is normally distributed around 0.920. 
 
+```{r}
 bootstrap_results |>
   ggplot(aes(x = log_product)) +
   geom_density() +
@@ -153,6 +156,8 @@ bootstrap_results |>
        y = "Frequency") +
   theme_minimal()
 ```
+The distribution of log product estimates is left-skewed. The median is around -5.
+
 
 ```{r}
 quantile(pull(bootstrap_results, r.squared), probs = c(0.025, 0.975)) |>
